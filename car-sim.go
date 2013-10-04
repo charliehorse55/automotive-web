@@ -13,7 +13,7 @@ type simulationResult struct {
     QuarterMile float64
     TopSpeed float64
     Speed []float64
-    PowerUse []float64
+    Power []float64
 }
 
 
@@ -38,7 +38,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
         //record current vehicle speed for the graph
         if (i % 10) == 0 {
             result.Speed = append(result.Speed, sim.Speed)
-            result.PowerUse = append(result.PowerUse, sim.PowerUse)
+            result.Power = append(result.Power, sim.PowerUse)
         }
         
         //request to accelerate much faster than is possible
@@ -55,7 +55,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
         }
         
         //top speed
-        if sim.Acceleration < 0.01 && result.TopSpeed == 0 {
+        if sim.Acceleration < 0.001 && result.TopSpeed == 0 {
             result.TopSpeed = sim.Speed
             
             

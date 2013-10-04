@@ -26,8 +26,19 @@ function displayResult(data, textStatus, jqXHR) {
 
 	$("#accel100").html(data.Accel100.toFixed(2) + "s")
 	$("#quarterMile").html(data.QuarterMile.toFixed(2) + "s")
-	$("#topSpeed").html((data.TopSpeed*3.6).toFixed(1) + " kph")
-	$.plot("#acceleration-placeholder", [data.Speed]);
+	$("#topSpeed").html((data.TopSpeed*3.6).toFixed(0) + " kph")
+	var length = data.Speed.length
+	var speed = []
+	var power = []
+	for (i = 0; i < length; i++) {
+		speed.push([i*0.1, data.Speed[i]*3.6])
+		power.push([i*0.1, data.Power[i]/1000])
+	}
+	var graphData = [ 
+		{ data:speed },
+  		{ data: power}
+ 	]
+	$.plot("#acceleration-placeholder", graphData);
 }
 
 function submitRequest() {
