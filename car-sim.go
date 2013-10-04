@@ -1,6 +1,6 @@
 package main
 
-import "automotiveSim"
+import "github.com/charliehorse55/automotiveSim"
 import "net/http"
 import "io/ioutil"
 import "log"
