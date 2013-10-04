@@ -75,7 +75,7 @@ function submitRequest() {
 	if (valid) {
 		$.ajax({
 		type: "POST",
-		url: "http://127.0.0.1/simulate",
+		url: "/simulate",
 		data: JSON.stringify(vehicle),
 		success: displayResult,
 		dataType: "json"
