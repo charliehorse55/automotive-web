@@ -6,6 +6,7 @@ import "io/ioutil"
 import "log"
 import "math"
 import "encoding/json"
+import "os"
 
 type simulationResult struct {
     Accel100 float64
@@ -82,5 +83,5 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
     http.HandleFunc("/simulate", handler)
     http.Handle("/files/", http.StripPrefix("/files/", http.FileServer(http.Dir("."))))
-    http.ListenAndServe(":80", nil)
+    log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
 }
