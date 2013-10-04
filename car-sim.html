@@ -1,0 +1,141 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Electric Vehicle Simulation</title>
+	<link rel="stylesheet" type="text/css" href="car-sim.css" media="screen" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+	<script src="jquery.flot.min.js"></script>
+	<script src="quantities.js"></script>
+	<script src="car-sim.js"></script>
+</head>
+<body>
+
+<div class="wholePage">
+<div class="input">
+<h1>Motors</h1>
+<table>
+	<tr>
+		<th>Peak Torque</th>
+		<th>Continuous Torque</th>
+		<th>Peak Power</th>
+		<th>Continuous Power</th>
+		<th>Max Speed</th>
+		<th>Gear Ratio</th>
+	</tr>
+	<tbody id="motors">
+	<tr>
+		<td><input type="text" class="peakTorque" value="250 N m" /></td>
+		<td><input type="text" class="continuousTorque" value="160 N m" /></td>
+		<td><input type="text" class="peakPower" value="160 kW" /></td>
+		<td><input type="text" class="continuousPower" value="65 kW" /></td>
+		<td><input type="text" class="MaxShaftSpeed" value="9000 rpm" /></td>
+		<td><input type="text" class="Gearing" value="4" /></td>
+	</tr>
+	</tbody>
+</table>
+<button id="addMotorRow">Add Row</button>
+<button id="removeMotorRow">Remove Row</button>
+<h1>Body</h1>
+<table>
+	<tr>
+		<th>CdA</th>
+		<th>Weight</th>
+		<th>Drivetrain Eff</th>
+		<th>Electrical Eff</th>
+	</tr>
+	<tr>
+		<td><input type="text" id="CdA" value="0.735" /></td>
+		<td><input type="text" id="Weight" value="1600 kg" /></td>
+		<td><input type="text" id="DrivetrainEff" value="0.98" /></td>
+		<td><input type="text" id="ElectricalEff" value="0.88" /></td>
+	</tr>
+</table>
+
+
+<h1>Tires</h1>
+<table>
+	<tr>
+		<th>Friction</th>
+		<th>Rolling Resistance</th>
+		<th>Radius</th>
+	</tr>
+	<tr>
+		<td><input type="text" id="Friction" value="0.9" /></td>
+		<td><input type="text" id="RollingResistance" value="0.012" /></td>
+		<td><input type="text" id="Radius" value="0.33 m" /></td>
+	</tr>
+</table>
+
+
+<h1>Battery</h1>
+<h2>Cell</h2>
+<table>
+	<tr>
+		<th>Nominal Voltage</th>
+		<th>Internal Resistance</th>
+		<th>Capacity</th>
+	</tr>
+	<tr>
+		<td><input type="text" id="nomVolt" value="3.2 V" /></td>
+		<td><input type="text" id="intResistance" value="0.15 mOhm" /></td>
+		<td><input type="text" id="capacity" value="50 A h" /></td>
+	</tr>
+</table>
+<h2>Pack</h2>
+<table>
+	<tr>
+		<th>Series</th>
+		<th>Parallel</th>
+	</tr>
+	<tr>
+		<td><input type="text" id="seriesCell" value="200" /></td>
+		<td><input type="text" id="parallelCell" value="1" /></td>
+	</tr>
+</table>
+
+
+<h1>Environment</h1>
+<table>
+	<tr>
+		<th>Accessory Power Draw</th>
+		<th>ExternalTemperature</th>
+	</tr>
+	<tr>
+		<td><input type="text" id="Accessory" value="1.8 kW" /></td>
+		<td><input type="text" id="ExternalTemp" value="25 C" /></td>
+	</tr>
+</table>
+
+<button id="submitRequest">Submit</button>
+</div>
+<div class="output">
+	<h1>Results</h1>
+	<table>
+	<tr><th>0-100 kph</th><td id="accel100"></td></tr>
+	<tr><th>Quarter Mile</th><td id="quarterMile"></td></tr>
+	<tr><th>Top Speed</th><td id="topSpeed"></td></tr>
+	</table>
+	
+	<div class="demo-container">
+		<div class='flot-x-axis flot-x1-axis'>
+    		<div class='flot-label'>Acceleration</div>
+		</div>
+		<div id="acceleration-placeholder" class="demo-placeholder"></div>
+	</div>
+	<div class="demo-container">
+		<div class='flot-x-axis flot-x1-axis'>
+    		<div class='flot-label'>EPA City Driving Cycle</div>
+		</div>
+		<div id="epa-city-placeholder" class="demo-placeholder"></div>
+	</div>
+
+</div>
+</div>
+</div>
+</body>
+</html>
+
+
+
+
