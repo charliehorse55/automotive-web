@@ -57,7 +57,12 @@ function displayResult(data, textStatus, jqXHR) {
 	        	label: "Mechanical Power (kW)",
 				pad: 0
 			}
-      	}
+      	},
+		legend: {
+			show: true,
+			location: 'se',
+		}
+
 	} 
 	$("#chartdiv").empty()
  	$.jqplot('chartdiv', [speed, power], options);
