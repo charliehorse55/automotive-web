@@ -5,7 +5,10 @@
 	<title>Electric Vehicle Simulation</title>
 	<link rel="stylesheet" type="text/css" href="car-sim.css" media="screen" />
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-	<script src="jquery.flot.min.js"></script>
+	<script language="javascript" type="text/javascript" src="jquery.jqplot.min.js"></script>
+	<script src="jqplot.canvasTextRenderer.min.js"></script>
+	<script src="jqplot.canvasAxisLabelRenderer.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="jquery.jqplot.min.css" />
 	<script src="quantities.js"></script>
 	<script src="car-sim.js"></script>
 </head>
@@ -117,19 +120,8 @@
 	<tr><th>Top Speed</th><td id="topSpeed"></td></tr>
 	</table>
 	
-	<div class="demo-container">
-		<div class='flot-x-axis flot-x1-axis'>
-    		<div class='flot-label'>Acceleration</div>
-		</div>
-		<div id="acceleration-placeholder" class="demo-placeholder"></div>
-	</div>
-	<div class="demo-container">
-		<div class='flot-x-axis flot-x1-axis'>
-    		<div class='flot-label'>EPA City Driving Cycle</div>
-		</div>
-		<div id="epa-city-placeholder" class="demo-placeholder"></div>
-	</div>
-
+	<div id="chartdiv" style="height:500px;width:100%; "></div>
+	
 </div>
 </div>
 </div>

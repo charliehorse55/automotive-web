@@ -36,7 +36,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
     //top speed is reached once acceleration is less than 0.01 m/s^2
     for i := 0; ; i++ {
         //record current vehicle speed for the graph
-        if (i % 10) == 0 {
+        if (i % 100) == 0 {
             result.Speed = append(result.Speed, sim.Speed)
             result.Power = append(result.Power, sim.PowerUse)
         }
@@ -55,7 +55,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
         }
         
         //top speed
-        if sim.Acceleration < 0.001 && result.TopSpeed == 0 {
+        if sim.Acceleration < 0.01 && result.TopSpeed == 0 {
             result.TopSpeed = sim.Speed
             
             

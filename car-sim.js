@@ -34,11 +34,33 @@ function displayResult(data, textStatus, jqXHR) {
 		speed.push([i*0.1, data.Speed[i]*3.6])
 		power.push([i*0.1, data.Power[i]/1000])
 	}
-	var graphData = [ 
-		{ data:speed },
-  		{ data: power}
- 	]
-	$.plot("#acceleration-placeholder", graphData);
+	var options = {
+		title: "Acceleration Profile",
+		seriesDefaults:{ 
+			showMarker:false, 
+			shadow:false
+		},
+		series:[ {label:"Speed (kph)"}, {label:"Power (kW)", yaxis:"y2axis"}],
+		axesDefaults : {
+			labelRenderer: $.jqplot.CanvasAxisLabelRenderer
+		},
+		axes: {
+       		xaxis: {
+	        	label: "Time (s)",
+	        	pad: 0
+	        },
+	        yaxis: {
+	        	label: "Speed (kph)",
+				pad: 0
+			},
+			y2axis: {
+	        	label: "Mechanical Power (kW)",
+				pad: 0
+			}
+      	}
+	} 
+	$("#chartdiv").empty()
+ 	$.jqplot('chartdiv', [speed, power], options);
 }
 
 function submitRequest() {
