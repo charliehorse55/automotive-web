@@ -24,48 +24,47 @@ function checkInput(element, units) {
 
 function displayResult(data, textStatus, jqXHR) {
 
-	$("#accel100").html(data.Accel100.toFixed(2) + "s")
-	$("#quarterMile").html(data.QuarterMile.toFixed(2) + "s")
-	$("#topSpeed").html((data.TopSpeed*3.6).toFixed(0) + " kph")
+	$("#accel100").html(data.Accel100)
+	$("#quarterMile").html(data.QuarterMile)
+	$("#topSpeed").html(data.TopSpeed)
 	var length = data.Speed.length
-	var speed = []
-	var power = []
-	for (i = 0; i < length; i++) {
-		speed.push([i*0.1, data.Speed[i]*3.6])
-		power.push([i*0.1, data.Power[i]/1000])
-	}
-	var options = {
-		title: "Acceleration Profile",
-		seriesDefaults:{ 
-			showMarker:false, 
-			shadow:false
-		},
-		series:[ {label:"Speed (kph)"}, {label:"Power (kW)", yaxis:"y2axis"}],
-		axesDefaults : {
-			labelRenderer: $.jqplot.CanvasAxisLabelRenderer
-		},
-		axes: {
-       		xaxis: {
-	        	label: "Time (s)",
-	        	pad: 0
-	        },
-	        yaxis: {
-	        	label: "Speed (kph)",
-				pad: 0
-			},
-			y2axis: {
-	        	label: "Mechanical Power (kW)",
-				pad: 0
-			}
-      	},
-		legend: {
-			show: true,
-			location: 'se',
-		}
+	var graphArray = [
+          ['Time (s)', 'Speed (kph)', 'Battery Power (kW)']
+    ];
 
-	} 
-	$("#chartdiv").empty()
- 	$.jqplot('chartdiv', [speed, power], options);
+	for (i = 0; i < length; i++) {
+		graphArray.push([i*0.1, data.Speed[i]*3.6, data.Power[i]/1000])
+	}
+	var graphData = google.visualization.arrayToDataTable(graphArray)
+	var options = {
+		title: 'Acceleration to Top Speed',
+		animation:{
+			duration: 1000,
+			easing: 'out'
+    	}
+    };
+	accelChart.draw(graphData, options);
+
+
+	length = data.Efficiency.length
+	graphArray = [
+          ['Speed (kph)', 'Energy Consumption (Wh/km)']
+    ];
+
+	for (i = 0; i < length; i++) {
+		graphArray.push([i+5, data.Efficiency[i]])
+	}
+	graphData = google.visualization.arrayToDataTable(graphArray)
+	options = {
+		title: 'Efficiency vs Speed',
+		animation:{
+			duration: 1000,
+			easing: 'out'
+    	}
+    };
+
+
+	effChart.draw(graphData, options);
 }
 
 function submitRequest() {
@@ -123,7 +122,19 @@ function submitRequest() {
 
 }
 
+function googleDidLoad() {
+	accelChart = new google.visualization.LineChart(document.getElementById('accel_chart'));
+	effChart = new google.visualization.LineChart(document.getElementById('eff_chart'));
+	submitRequest()
+}
+
 $( document ).ready(function() {
+    google.load("visualization", "1", {packages:["corechart"], "callback" : googleDidLoad});
+
+	$(".input").on("change", submitRequest)
+		
+
+
 	for (var i = 0; i < 3; i++) {
 		addAMotorRow()
 	}
@@ -135,6 +146,7 @@ $( document ).ready(function() {
 	})
 	$("#addMotorRow").on("click", addAMotorRow)
 	$("#submitRequest").on("click", submitRequest)
+	
 });
 
 
