@@ -83,12 +83,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
     }
     
     //calculate wh/km from 1 to 200 km/hr
-    effSpeed := 200
+    effSpeed := 150
     if int(topSpeed) < effSpeed {
         effSpeed  = int(topSpeed)
     }
     
-    for i := 5; i < effSpeed; i++ {
+    for i := 10; i < effSpeed; i++ {
         sim.Speed = float64(i)/3.6;;
         sim.Tick(0);
         result.Efficiency = append(result.Efficiency, sim.PowerUse/float64(i))

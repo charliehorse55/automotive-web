@@ -52,7 +52,7 @@ function displayResult(data, textStatus, jqXHR) {
     ];
 
 	for (i = 0; i < length; i++) {
-		graphArray.push([i+5, data.Efficiency[i]])
+		graphArray.push([i+10, data.Efficiency[i]])
 	}
 	graphData = google.visualization.arrayToDataTable(graphArray)
 	options = {
@@ -145,7 +145,6 @@ $( document ).ready(function() {
 		}
 	})
 	$("#addMotorRow").on("click", addAMotorRow)
-	$("#submitRequest").on("click", submitRequest)
 	
 });
 
