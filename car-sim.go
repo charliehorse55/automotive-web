@@ -15,6 +15,7 @@ type simulationResult struct {
     TopSpeed string
     CityEff string
     HighwayEff string
+    PeakG string
     
     //from the acceleration simulation
     Speed []float64
@@ -43,11 +44,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
     var result simulationResult
     
     var topSpeed float64
+    var peakG float64
     
     //top speed is reached once acceleration is less than 0.01 m/s^2
     for i := 0; ; i++ {        
         //request to accelerate much faster than is possible
         sim.Tick(10000)
+        
+        if(sim.Acceleration > peakG) {
+            peakG = sim.Acceleration
+        }
         
         //have he accelerated past 100 kph?
         if sim.Speed > (100/3.6) && result.Accel100 == "" {
@@ -82,13 +88,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
         }
     }
     
+    result.PeakG = fmt.Sprintf("%4.2fg", peakG/9.81)
+    
     //calculate wh/km from 1 to 200 km/hr
     effSpeed := 150
     if int(topSpeed) < effSpeed {
         effSpeed  = int(topSpeed)
     }
     
-    for i := 10; i < effSpeed; i++ {
+    for i := 30; i <= effSpeed; i++ {
         sim.Speed = float64(i)/3.6;;
         sim.Tick(0);
         result.Efficiency = append(result.Efficiency, sim.PowerUse/float64(i))

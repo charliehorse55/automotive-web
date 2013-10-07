@@ -27,6 +27,8 @@ function displayResult(data, textStatus, jqXHR) {
 	$("#accel100").html(data.Accel100)
 	$("#quarterMile").html(data.QuarterMile)
 	$("#topSpeed").html(data.TopSpeed)
+	$("#peakG").html(data.PeakG)
+	
 	var length = data.Speed.length
 	var graphArray = [
           ['Time (s)', 'Speed (kph)', 'Battery Power (kW)']
@@ -41,6 +43,12 @@ function displayResult(data, textStatus, jqXHR) {
 		animation:{
 			duration: 1000,
 			easing: 'out'
+    	},
+    	vAxis:{
+    		baseline:0
+    	},
+    	hAxis:{
+    		title:"Time (s)"
     	}
     };
 	accelChart.draw(graphData, options);
@@ -52,14 +60,23 @@ function displayResult(data, textStatus, jqXHR) {
     ];
 
 	for (i = 0; i < length; i++) {
-		graphArray.push([i+10, data.Efficiency[i]])
+		graphArray.push([i+30, data.Efficiency[i]])
 	}
 	graphData = google.visualization.arrayToDataTable(graphArray)
 	options = {
-		title: 'Efficiency vs Speed',
 		animation:{
 			duration: 1000,
 			easing: 'out'
+    	},
+    	vAxis:{
+    		baseline:0,
+    		title:"Energy Consumption (Wh/km)"
+    	},
+    	hAxis:{
+    		title:"Speed (kph)"
+    	},
+    	legend:{
+    		position:"none"
     	}
     };
 
