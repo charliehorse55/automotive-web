@@ -16,6 +16,7 @@ type simulationResult struct {
     CityEff string
     HighwayEff string
     PeakG string
+    Cruise120 string
     
     //from the acceleration simulation
     Speed []float64
@@ -25,6 +26,9 @@ type simulationResult struct {
     // Wh/km vs speed
     Efficiency []float64
 }
+
+var epaUDDS automotiveSim.SimulatorRun
+var epaHighway automotiveSim.SimulatorRun
 
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -97,11 +101,30 @@ func handler(w http.ResponseWriter, r *http.Request) {
     }
     
     for i := 30; i <= effSpeed; i++ {
-        sim.Speed = float64(i)/3.6;;
+        sim.Speed = float64(i)/3.6;
         sim.Tick(0);
+        if i == 120 {
+            result.Cruise120 = fmt.Sprintf("%5.2f L/100km equivalent", (sim.PowerUse/float64(i))*0.01111111111)
+        }
         result.Efficiency = append(result.Efficiency, sim.PowerUse/float64(i))
     }
-        
+    
+    eff, err := automotiveSim.RunInput(&epaUDDS, vehicle)
+    if err != nil {
+        log.Println(err)
+        return
+    }
+    result.CityEff = fmt.Sprintf("%5.2f L/100km equivalent", eff*0.00308641975)
+    
+    eff, err = automotiveSim.RunInput(&epaHighway, vehicle)
+    if err != nil {
+        log.Println(err)
+        return
+    }
+    result.HighwayEff = fmt.Sprintf("%5.2f L/100km equivalent", eff*0.00308641975)
+
+    
+    
     data, err := json.Marshal(result)
     if err != nil {
         log.Printf("Failed to marshal data: %v\n", result)
@@ -112,6 +135,25 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+    b, err := ioutil.ReadFile("udds.json")
+    if err != nil {
+        log.Fatal(err)
+    }
+    err = json.Unmarshal(b, &epaUDDS)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    b, err = ioutil.ReadFile("highway.json")
+    if err != nil {
+        log.Fatal(err)
+    }
+    err = json.Unmarshal(b, &epaHighway)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    
     http.HandleFunc("/simulate", handler)
     http.Handle("/files/", http.StripPrefix("/files/", http.FileServer(http.Dir("."))))
     log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), nil))

@@ -28,6 +28,10 @@ function displayResult(data, textStatus, jqXHR) {
 	$("#quarterMile").html(data.QuarterMile)
 	$("#topSpeed").html(data.TopSpeed)
 	$("#peakG").html(data.PeakG)
+	$("#cityEff").html(data.CityEff)
+	$("#highwayEff").html(data.HighwayEff)
+	$("#120cruise").html(data.Cruise120)
+	
 	
 	var length = data.Speed.length
 	var graphArray = [
