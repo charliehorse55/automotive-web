@@ -111,17 +111,17 @@ func handler(w http.ResponseWriter, r *http.Request) {
     
     eff, err := automotiveSim.RunInput(&epaUDDS, vehicle)
     if err != nil {
-        log.Println(err)
-        return
+        result.CityEff = err.Error()
+    } else {
+        result.CityEff = fmt.Sprintf("%5.2f L/100km equivalent", eff*0.00308641975)
     }
-    result.CityEff = fmt.Sprintf("%5.2f L/100km equivalent", eff*0.00308641975)
     
     eff, err = automotiveSim.RunInput(&epaHighway, vehicle)
     if err != nil {
-        log.Println(err)
-        return
+        result.HighwayEff = err.Error()
+    } else {
+        result.HighwayEff = fmt.Sprintf("%5.2f L/100km equivalent", eff*0.00308641975)
     }
-    result.HighwayEff = fmt.Sprintf("%5.2f L/100km equivalent", eff*0.00308641975)
 
     
     
