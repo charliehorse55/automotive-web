@@ -13,6 +13,8 @@ type simulationResult struct {
     Accel100 string
     QuarterMile string
     TopSpeed string
+	TopSpeedAccelTime string
+	TopSpeedEff string
     CityEff string
     HighwayEff string
     PeakG string
@@ -79,7 +81,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
         //check if we have reached top speed
         if sim.Acceleration < 0.01 && result.TopSpeed == "" {
             result.TopSpeed = fmt.Sprintf("%3.0f kph", sim.Speed*3.6)
-            topSpeed = sim.Speed*3.6
+			result.TopSpeedAccelTime = fmt.Sprintf("%5.2fs", sim.Time)
+            topSpeed = sim.Speed
             //we can't accelerate to that speed if it's higher than our top speed!
             if sim.Speed < (100/3.6) {
                 result.Accel100 = "Top Speed < 100 kph"
@@ -96,31 +99,35 @@ func handler(w http.ResponseWriter, r *http.Request) {
     
     //calculate wh/km from 1 to 200 km/hr
     effSpeed := 150
-    if int(topSpeed) < effSpeed {
-        effSpeed  = int(topSpeed)
+    if int(topSpeed*3.6) < effSpeed {
+        effSpeed  = int(topSpeed*3.6)
     }
     
     for i := 30; i <= effSpeed; i++ {
         sim.Speed = float64(i)/3.6;
         sim.Tick(0);
         if i == 120 {
-            result.Cruise120 = fmt.Sprintf("%5.2f L/100km equivalent", (sim.PowerUse/float64(i))*0.01111111111)
+            result.Cruise120 = fmt.Sprintf("%5.2f L/100km equivalent", (sim.PowerUse/float64(i))*0.01123595505)
         }
         result.Efficiency = append(result.Efficiency, sim.PowerUse/float64(i))
     }
-    
+	sim.Speed = topSpeed
+	sim.Tick(0)
+    result.TopSpeedEff = fmt.Sprintf("%5.2f L/100km equivalent", (sim.PowerUse/topSpeed)*0.00312109862)
+	
+	
     eff, err := automotiveSim.RunInput(&epaUDDS, vehicle)
     if err != nil {
         result.CityEff = err.Error()
     } else {
-        result.CityEff = fmt.Sprintf("%5.2f L/100km equivalent", eff*0.00308641975)
+        result.CityEff = fmt.Sprintf("%5.2f L/100km equivalent", eff*0.00312109862)
     }
     
     eff, err = automotiveSim.RunInput(&epaHighway, vehicle)
     if err != nil {
         result.HighwayEff = err.Error()
     } else {
-        result.HighwayEff = fmt.Sprintf("%5.2f L/100km equivalent", eff*0.00308641975)
+        result.HighwayEff = fmt.Sprintf("%5.2f L/100km equivalent", eff*0.00312109862)
     }
 
     data, err := json.Marshal(result)

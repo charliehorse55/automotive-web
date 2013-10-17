@@ -1,5 +1,6 @@
 function addAMotorRow() {
 	$("#motors").append($('#motors tr:last').clone())
+	submitRequest()
 }
 
 function removeClass(element, aClass) {
@@ -43,6 +44,8 @@ function displayResult(data, textStatus, jqXHR) {
 		graphArray.push([i*0.1, data.Speed[i]*3.6, data.Power[i]/1000])
 	}
 	var graphData = google.visualization.arrayToDataTable(graphArray)
+    var speedFormatter = new google.visualization.NumberFormat({pattern:'###.## kph'});
+	speedFormatter.format(graphData, 1)
 	var options = {
 		title: 'Acceleration to Top Speed',
 		animation:{
@@ -82,6 +85,10 @@ function displayResult(data, textStatus, jqXHR) {
 	}
 	
 	graphData = google.visualization.arrayToDataTable(graphArray)
+    var effFormater = new google.visualization.NumberFormat({pattern:'###.##'});
+    effFormater.format(graphData, 1);
+	speedFormatter.format(graphData, 0)
+	
 	options = {
 		animation:{
 			duration: 1000,
@@ -182,7 +189,8 @@ $( document ).ready(function() {
 	
 	$("#removeMotorRow").on("click", function() {
 		if ($("#motors tr").length > 1) {
-			$('#motors tr:last').remove();
+			$('#motors tr:last').remove()
+			submitRequest()
 		}
 	})
 	$("#addMotorRow").on("click", addAMotorRow)
