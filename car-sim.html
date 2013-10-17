@@ -12,17 +12,17 @@
 <body>
 
 <div class="wholePage">
-<div class="output">
+<div id="output">
 	<h1>Results</h1>	
     <div id="accel_chart" style="width: 1000px; height: 500px;"></div>
 	<table>
-		<tr><th>0-100 kph</th><td id="accel100"></td><th>Peak Acceleration</th><td id="peakG"></td></tr>
-		<tr><th>Quarter Mile</th><td id="quarterMile"></td><th>Top Speed</th><td id="topSpeed"></td></tr>
+		<tr><th>0-100 kph</th><td id="Accel100"></td><th>Peak Acceleration</th><td id="PeakG"></td></tr>
+		<tr><th>Quarter Mile</th><td id="QuarterMile"></td><th>Top Speed</th><td id="TopSpeed"></td></tr>
 	</table>
     <div id="eff_chart" style="width: 1000px; height: 500px;"></div>
 	<table>
-		<tr><th>EPA City</th><td id="cityEff"></td><th>120 kph cruise</th><td id="120cruise"></td></tr>
-		<tr><th>EPA Highway</th><td id="highwayEff"></td></tr>
+		<tr><th>EPA City</th><td id="CityEff"></td><th>120 kph cruise</th><td id="Cruise120"></td></tr>
+		<tr><th>EPA Highway</th><td id="HighwayEff"></td></tr>
 	</table>
 
 </div>
@@ -77,7 +77,7 @@
 	</tr>
 	<tr>
 		<td><input type="text" id="Friction" value="0.9" /></td>
-		<td><input type="text" id="RollingResistance" value="0.012" /></td>
+		<td><input type="text" id="RollingResistance" value="0.010" /></td>
 		<td><input type="text" id="Radius" value="0.33 m" /></td>
 	</tr>
 </table>

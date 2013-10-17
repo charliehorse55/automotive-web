@@ -24,14 +24,15 @@ function checkInput(element, units) {
 
 function displayResult(data, textStatus, jqXHR) {
 
-	$("#accel100").html(data.Accel100)
-	$("#quarterMile").html(data.QuarterMile)
-	$("#topSpeed").html(data.TopSpeed)
-	$("#peakG").html(data.PeakG)
-	$("#cityEff").html(data.CityEff)
-	$("#highwayEff").html(data.HighwayEff)
-	$("#120cruise").html(data.Cruise120)
-	
+	//update all of the elements that match the response from the server
+	var outputs = $("#output").find("*")
+	var len = outputs.length
+	for (var i = 0; i < len; i++ ) {
+		var id = outputs[i].id
+		if (data.hasOwnProperty(id)) {
+			outputs.eq(i).html(data[id])
+		}
+	}	
 	
 	var length = data.Speed.length
 	var graphArray = [
@@ -57,15 +58,29 @@ function displayResult(data, textStatus, jqXHR) {
     };
 	accelChart.draw(graphData, options);
 
-
 	length = data.Efficiency.length
 	graphArray = [
           ['Speed (kph)', 'Energy Consumption (Wh/km)']
     ];
-
+	
+	var max = 0
 	for (i = 0; i < length; i++) {
+		if (data.Efficiency[i] > max) {
+			max = data.Efficiency[i]
+		}
 		graphArray.push([i+30, data.Efficiency[i]])
 	}
+	
+	//is the axis too small?
+	if (effGraphMax < max) {
+		effGraphMax = max * 2
+	}
+	
+	//is the axis to large?
+	if ((effGraphMax/4) > max) {
+		effGraphMax = max * 2
+	}
+	
 	graphData = google.visualization.arrayToDataTable(graphArray)
 	options = {
 		animation:{
@@ -73,6 +88,9 @@ function displayResult(data, textStatus, jqXHR) {
 			easing: 'out'
     	},
     	vAxis:{
+			viewWindow:{
+				max:effGraphMax
+			},
     		baseline:0,
     		title:"Energy Consumption (Wh/km)"
     	},
@@ -150,7 +168,9 @@ function googleDidLoad() {
 }
 
 $( document ).ready(function() {
-    google.load("visualization", "1", {packages:["corechart"], "callback" : googleDidLoad});
+    effGraphMax = 0
+	
+	google.load("visualization", "1", {packages:["corechart"], "callback" : googleDidLoad});
 
 	$(".input").on("change", submitRequest)
 		

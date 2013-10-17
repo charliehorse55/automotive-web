@@ -123,8 +123,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
         result.HighwayEff = fmt.Sprintf("%5.2f L/100km equivalent", eff*0.00308641975)
     }
 
-    
-    
     data, err := json.Marshal(result)
     if err != nil {
         log.Printf("Failed to marshal data: %v\n", result)
