@@ -35,43 +35,30 @@ function displayResult(data, textStatus, jqXHR) {
 		}
 	}	
 	
-	var length = data.Speed.length
-	var graphArray = [
-          ['Time (s)', 'Speed (kph)', 'Battery Power (kW)']
-    ];
 
-	for (i = 0; i < length; i++) {
-		graphArray.push([i*0.1, data.Speed[i]*3.6, data.Power[i]/1000])
-	}
-	var graphData = google.visualization.arrayToDataTable(graphArray)
-    var speedFormatter = new google.visualization.NumberFormat({pattern:'###.## kph'});
-	speedFormatter.format(graphData, 1)
-	var options = {
-		title: 'Acceleration to Top Speed',
-		animation:{
-			duration: 1000,
-			easing: 'out'
-    	},
-    	vAxis:{
-    		baseline:0
-    	},
-    	hAxis:{
-    		title:"Time (s)"
-    	}
-    };
-	accelChart.draw(graphData, options);
-
-	length = data.Efficiency.length
+	var length = data.Efficiency.Speeds.length
 	graphArray = [
-          ['Speed (kph)', 'Energy Consumption (Wh/km)']
+          ['Speed (kph)']
     ];
 	
+	var numPowerSources = data.Efficiency.Sources.length
+	for (var i = 0; i < numPowerSources; i++ ) {
+		graphArray[0].push(data.Efficiency.Sources[i])
+	}
+	
 	var max = 0
-	for (i = 0; i < length; i++) {
-		if (data.Efficiency[i] > max) {
-			max = data.Efficiency[i]
+	for (var i = 0; i < length; i++) {
+		var point = [ data.Efficiency.Speeds[i]*3.6 ]
+		var total = 0
+		for(var j = 0; j < numPowerSources; j++) {
+			var effValue = data.Efficiency.Magnitude[i][j]/3.6
+			total += effValue
+			point.push(effValue)
 		}
-		graphArray.push([i+30, data.Efficiency[i]])
+		if (total > max) {
+			max = total
+		}
+		graphArray.push(point)
 	}
 	
 	//is the axis too small?
@@ -85,11 +72,17 @@ function displayResult(data, textStatus, jqXHR) {
 	}
 	
 	graphData = google.visualization.arrayToDataTable(graphArray)
-    var effFormater = new google.visualization.NumberFormat({pattern:'###.##'});
-    effFormater.format(graphData, 1);
+    var effFormater = new google.visualization.NumberFormat({pattern:'###.# Wh/km'});
+	for(var i = 0; i < numPowerSources; i++) {
+	    effFormater.format(graphData, i + 1);
+	}
+	
+    var speedFormatter = new google.visualization.NumberFormat({pattern:'###.## kph'});
 	speedFormatter.format(graphData, 0)
 	
 	options = {
+		isStacked: true,
+		areaOpacity:1.0,
 		animation:{
 			duration: 1000,
 			easing: 'out'
@@ -104,9 +97,9 @@ function displayResult(data, textStatus, jqXHR) {
     	hAxis:{
     		title:"Speed (kph)"
     	},
-    	legend:{
-    		position:"none"
-    	}
+    	// legend:{
+    	// 	position:"none"
+    	// }
     };
 
 
@@ -169,8 +162,7 @@ function submitRequest() {
 }
 
 function googleDidLoad() {
-	accelChart = new google.visualization.LineChart(document.getElementById('accel_chart'));
-	effChart = new google.visualization.LineChart(document.getElementById('eff_chart'));
+	effChart = new google.visualization.AreaChart(document.getElementById('eff_chart'));
 	submitRequest()
 }
 
@@ -181,11 +173,6 @@ $( document ).ready(function() {
 
 	$(".input").on("change", submitRequest)
 		
-
-
-	for (var i = 0; i < 3; i++) {
-		$("#motors").append($('#motors tr:last').clone())
-	}
 	
 	$("#removeMotorRow").on("click", function() {
 		if ($("#motors tr").length > 1) {
@@ -194,6 +181,14 @@ $( document ).ready(function() {
 		}
 	})
 	$("#addMotorRow").on("click", addAMotorRow)
+	
+	
+	$("#tabs").tabs().css({
+	   'min-height': '700px',
+	   'overflow': 'auto'
+	});
+	
+    $("#input").accordion({ collapsible: true, active: false });
 	
 });
 

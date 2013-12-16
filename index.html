@@ -1,0 +1,170 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Electric Vehicle Simulation</title>
+	<link rel="stylesheet" type="text/css" href="car-sim.css" media="screen" />
+	<link rel="stylesheet" type="text/css" href="jquery-theme/jquery-ui-1.10.3.custom.min.css" media="screen" />
+	
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	<script src="quantities.js"></script>
+	<script src="car-sim.js"></script>
+</head>
+<body>
+
+<div class="wholePage">	
+<div id="output">
+	<h1>Results</h1>
+	<div id="tabs">
+		<ul>
+			<li><a href="#tabs-1">Efficiency</a></li>
+			<li><a href="#tabs-2">Acceleration</a></li>
+			<li><a href="#tabs-3">EPA Drive Schedules</a></li>
+		</ul>
+		
+		
+		<div id="tabs-1">
+			<div id="eff_chart" style="width: 100%; height: 600px;"></div>
+			<!-- <h3>Notes</h3>
+			<p>
+				<ul>
+					<li>Inefficiencies include any parasitic losses present in the drive systems of the vehicle. Drivetrain, controller/motor loss and battery internal resistance</li>
+
+				</ul>
+			</p> -->
+		</div>
+
+		<div id="tabs-2">
+			<table>
+				<tr><th>0-100 kph</th><td id="Accel100"></td><th>Peak Acceleration</th><td id="PeakG"></td><th>Quarter Mile</th><td id="QuarterMile"></td></tr>
+				<tr><th>Top Speed</th><td id="TopSpeed"></td><th>Time to Top Speed</th><td id="TopSpeedAccelTime"></td></tr>
+			</table>
+		</div>
+		<div id="tabs-3">
+
+		</div>
+	</div>
+	
+</div>
+
+<div class="input" id="input">
+	<h1>Motors</h1>
+	<div>
+		<table>
+			<tr>
+				<th>Peak Torque</th>
+				<th>Continuous Torque</th>
+				<th>Peak Power</th>
+				<th>Continuous Power</th>
+				<th>Max Speed</th>
+				<th>Gear Ratio</th>
+			</tr>
+			<tbody id="motors">
+				<tr>
+					<td><input type="text" class="peakTorque" value="400 N m" /></td>
+					<td><input type="text" class="continuousTorque" value="250 N m" /></td>
+					<td><input type="text" class="peakPower" value="170 kW" /></td>
+					<td><input type="text" class="continuousPower" value="75 kW" /></td>
+					<td><input type="text" class="MaxShaftSpeed" value="7500 rpm" /></td>
+					<td><input type="text" class="Gearing" value="4.2" /></td>
+				</tr>
+				<tr>
+					<td><input type="text" class="peakTorque" value="400 N m" /></td>
+					<td><input type="text" class="continuousTorque" value="250 N m" /></td>
+					<td><input type="text" class="peakPower" value="170 kW" /></td>
+					<td><input type="text" class="continuousPower" value="75 kW" /></td>
+					<td><input type="text" class="MaxShaftSpeed" value="7500 rpm" /></td>
+					<td><input type="text" class="Gearing" value="4.2" /></td>
+				</tr>
+			</tbody>
+		</table>
+		<button id="addMotorRow">Add Row</button>
+		<button id="removeMotorRow">Remove Row</button>
+	</div>
+	
+	<h1>Body</h1>
+	<div>
+		<table>
+			<tr>
+				<th>CdA</th>
+				<th>Weight</th>
+				<th>Drivetrain Eff</th>
+				<th>Electrical Eff</th>
+			</tr>
+			<tr>
+				<td><input type="text" id="CdA" value="0.735" /></td>
+				<td><input type="text" id="Weight" value="1600 kg" /></td>
+				<td><input type="text" id="DrivetrainEff" value="0.95" /></td>
+				<td><input type="text" id="ElectricalEff" value="0.86" /></td>
+			</tr>
+		</table>
+	</div>
+
+	<h1>Tires</h1>
+	<div>
+		<table>
+			<tr>
+				<th>Friction</th>
+				<th>Rolling Resistance</th>
+				<th>Radius</th>
+			</tr>
+			<tr>
+				<td><input type="text" id="Friction" value="0.85" /></td>
+				<td><input type="text" id="RollingResistance" value="0.010" /></td>
+				<td><input type="text" id="Radius" value="0.33 m" /></td>
+			</tr>
+		</table>
+	</div>
+	
+	<h1>Battery</h1>
+	<div>
+		<h2>Cell</h2>
+		<table>
+			<tr>
+				<th>Nominal Voltage</th>
+				<th>Internal Resistance</th>
+				<th>Capacity</th>
+			</tr>
+			<tr>
+				<td><input type="text" id="nomVolt" value="3.2 V" /></td>
+				<td><input type="text" id="intResistance" value="0.65 mOhm" /></td>
+				<td><input type="text" id="capacity" value="75 A h" /></td>
+			</tr>
+		</table>
+		<h2>Pack</h2>
+		<table>
+			<tr>
+				<th>Series</th>
+				<th>Parallel</th>
+			</tr>
+			<tr>
+				<td><input type="text" id="seriesCell" value="185" /></td>
+				<td><input type="text" id="parallelCell" value="1" /></td>
+			</tr>
+		</table>
+	</div>
+	
+	<h1>Environment</h1>
+	<div>
+		<table>
+			<tr>
+				<th>Accessory Power Draw</th>
+				<th>ExternalTemperature</th>
+			</tr>
+			<tr>
+				<td><input type="text" id="Accessory" value="1.8 kW" /></td>
+				<td><input type="text" id="ExternalTemp" value="25 C" /></td>
+			</tr>
+		</table>
+	</div>
+</div>
+</div>
+</div>
+</body>
+</html>
+
+
+
+
