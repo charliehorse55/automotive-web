@@ -13,11 +13,6 @@ import (
 
 const gravity = 9.81
 
-type PowerUse struct {
-	Speed float64	   // kph
-	Efficiency float64 // Wh/km
-}
-
 type simulationResult struct {
     Accel100 string
     QuarterMile string
@@ -25,14 +20,17 @@ type simulationResult struct {
 	TopSpeedAccelTime string
 	TopSpeedEff string
     PeakG string
+	Limits []automotiveSim.LimitingReason
 	
 	Economy map[string]string
         
     // Wh/km vs speed
     Efficiency *automotiveSim.PowerDraw
+	
+	
 }
 
-var DriveSchedules []automotiveSim.Schedule
+var DriveSchedules map[string]automotiveSim.Schedule
 
 func removeSource(name string, p *automotiveSim.PowerDraw) {
 	//find the index to remove
@@ -46,6 +44,7 @@ func removeSource(name string, p *automotiveSim.PowerDraw) {
 	if index == -1 {
 		return
 	}
+	
 	//remove that source from the name list
 	p.Sources = append(p.Sources[:index], p.Sources[index+1:]...) 
 	
@@ -77,18 +76,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	response.QuarterMile = fmt.Sprintf("%5.2fs", accel.QuarterMile)
 	response.TopSpeedAccelTime = fmt.Sprintf("%5.2fs", accel.AccelTop)
     response.PeakG = fmt.Sprintf("%4.2fg", accel.PeakAccel/gravity)
+	response.Limits = accel.Limits
         
 	response.Economy = make(map[string]string)
-	for _,schedule := range DriveSchedules {
+	for name,schedule := range DriveSchedules {
 		result, err := schedule.Run(vehicle)
 		if err != nil {
-			response.Economy[schedule.Name] = fmt.Sprintf("Failed")
+			response.Economy[name] = fmt.Sprintf("Failed")
 		} else {
 			energy := 0.0
 			for _,p := range result.Power {
 				energy += p * schedule.Interval
 			}
-			response.Economy[schedule.Name] = fmt.Sprintf("%4.1f Wh/km", energy/result.Distance)
+			response.Economy[name] = fmt.Sprintf("%4.1f Wh/km", energy/result.Distance)
 		}
 	}
 	
@@ -128,6 +128,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func readSchedules(path string) error {
+	DriveSchedules = make(map[string]automotiveSim.Schedule)
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return err
@@ -146,7 +147,7 @@ func readSchedules(path string) error {
 		err = json.Unmarshal(b, &schedule)
 		if err != nil { return err }
 		
-		DriveSchedules = append(DriveSchedules, schedule)
+		DriveSchedules[file.Name()] = schedule
 	}
 	return nil
 }

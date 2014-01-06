@@ -23,35 +23,23 @@ function checkInput(element, units) {
 	}
 }
 
-function displayResult(data, textStatus, jqXHR) {
-
-	//update all of the elements that match the response from the server
-	var outputs = $("#output").find("*")
-	var len = outputs.length
-	for (var i = 0; i < len; i++ ) {
-		var id = outputs[i].id
-		if (data.hasOwnProperty(id)) {
-			outputs.eq(i).html(data[id])
-		}
-	}	
-	
-
-	var length = data.Efficiency.Speeds.length
-	graphArray = [
+function draw_eff() {
+	var length = currData.Efficiency.Speeds.length
+	var graphArray = [
           ['Speed (kph)']
     ];
 	
-	var numPowerSources = data.Efficiency.Sources.length
+	var numPowerSources = currData.Efficiency.Sources.length
 	for (var i = 0; i < numPowerSources; i++ ) {
-		graphArray[0].push(data.Efficiency.Sources[i])
+		graphArray[0].push(currData.Efficiency.Sources[i])
 	}
 	
 	var max = 0
 	for (var i = 0; i < length; i++) {
-		var point = [ data.Efficiency.Speeds[i]*3.6 ]
+		var point = [ currData.Efficiency.Speeds[i]*3.6 ]
 		var total = 0
 		for(var j = 0; j < numPowerSources; j++) {
-			var effValue = data.Efficiency.Magnitude[i][j]/3.6
+			var effValue = currData.Efficiency.Magnitude[i][j]/3.6
 			total += effValue
 			point.push(effValue)
 		}
@@ -104,6 +92,42 @@ function displayResult(data, textStatus, jqXHR) {
 
 
 	effChart.draw(graphData, options);
+}
+
+function draw_perf() {
+
+}
+
+function draw_epa() {
+	
+}
+
+function displayResult(data, textStatus, jqXHR) {
+	currData = data
+
+	//update all of the elements that match the response from the server
+	var outputs = $("#output").find("*")
+	var len = outputs.length
+	for (var i = 0; i < len; i++ ) {
+		var id = outputs[i].id
+		if (data.hasOwnProperty(id)) {
+			outputs.eq(i).html(data[id])
+		}
+	}	
+	
+	var time = 0.0
+	var newEntry = ""
+	for (var i = 0; i < data.Limits.length; i++) {
+		newEntry += "[" + time.toFixed(2) + "-"
+		time += data.Limits[i].Duration
+		newEntry += time.toFixed(2) + "] " + data.Limits[i].Reason + "<br>"
+	}
+	$("#limitingReasons").html(newEntry)
+
+	// GET INDEX OF ACTIVE TAB
+	// make sure to replace #tabs with the actual selector
+	// that you used to create the tabs
+	update_funcs[$('#tabs').tabs('option','active')]()
 }
 
 function submitRequest() {
@@ -183,13 +207,20 @@ $( document ).ready(function() {
 	$("#addMotorRow").on("click", addAMotorRow)
 	
 	
-	$("#tabs").tabs().css({
+	$("#tabs").tabs({
+    activate: function(event, ui) {
+		update_funcs[ui.newPanel.attr("id").substr(5)]()
+		
+    }
+	}).css({
 	   'min-height': '700px',
 	   'overflow': 'auto'
 	});
 	
     $("#input").accordion({ collapsible: true, active: false });
 	
+	
+	update_funcs = [draw_eff, draw_perf, draw_epa]
 });
 
 
