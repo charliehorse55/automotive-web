@@ -31,7 +31,7 @@ table {
 }
 
 td, th { 
-	border: 2px solid; /* No more visible border */
+	border: 0px solid; /* No more visible border */
 	border-color: #FFFFFF;
 	height: 30px; 
 }
@@ -47,6 +47,7 @@ input {
 th {
 	background: #DFDFDF;  /* Darken header a bit */
 	font-weight: bold;
+	text-align: left;
 }
 
 td {
@@ -68,3 +69,22 @@ table td.invalid_format {
 	background : #FF0000;
 }
 
+.alert-box {
+    color:#555;
+/*    border-radius:10px;
+*/    font-family:Tahoma,Geneva,Arial,sans-serif;font-size:11px;
+    padding:10px 10px 10px 10px;
+    margin-top:10px;
+    margin-bottom:10px;
+}
+
+.alert-box span {
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.error {
+    background:#ffecec 10px 50%;
+    border:1px solid #f5aca6;
+}
+	

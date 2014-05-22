@@ -37,47 +37,52 @@
 		</div>
 
 		<div id="tabs-1">
+			<h3 id="QuarterMile"></h3>
+			<div id="accel_chart" style="width: 100%; height: 600px;"></div>
+			<h4>Limiting Factors</h4>
+			<p id="limitingReasons" />
+			
+			<h3>Acceleration</h3>
 			<table>
-				<tr><th>0-100 kph</th><td id="Accel100"></td><th>Peak Acceleration</th><td id="PeakG"></td><th>Quarter Mile</th><td id="QuarterMile"></td></tr>
+				<tr><th>0-100 kph</th><td id="Accel100"></td><th>Peak Acceleration</th><td id="PeakG"></td></tr>
 				<tr><th>Top Speed</th><td id="TopSpeed"></td><th>Time to Top Speed</th><td id="TopSpeedAccelTime"></td></tr>
 			</table>
-			<div id="limitingReasons" />
 		</div>
 		<div id="tabs-2">
-
 		</div>
 	</div>
 	
 </div>
 
-<div class="input" id="input">
+<div id="errorMessage" class="alert-box error"></div>
+<div class="input" id="input-tabs">
 	<h1>Motors</h1>
 	<div>
 		<table>
 			<tr>
+				<th>Name</th>
 				<th>Peak Torque</th>
-				<th>Continuous Torque</th>
+				<th>Cont. Torque</th>
 				<th>Peak Power</th>
-				<th>Continuous Power</th>
-				<th>Max Speed</th>
-				<th>Gear Ratio</th>
+				<th>Cont. Power</th>
+				<th>Max RPM</th>
 			</tr>
 			<tbody id="motors">
 				<tr>
+					<td><input type="text" class="name" value="Yasa 400" /></td>
 					<td><input type="text" class="peakTorque" value="400 N m" /></td>
 					<td><input type="text" class="continuousTorque" value="250 N m" /></td>
 					<td><input type="text" class="peakPower" value="170 kW" /></td>
 					<td><input type="text" class="continuousPower" value="75 kW" /></td>
-					<td><input type="text" class="MaxShaftSpeed" value="7500 rpm" /></td>
-					<td><input type="text" class="Gearing" value="4.2" /></td>
+					<td><input type="text" class="maxShaftSpeed" value="7500 rpm" /></td>
 				</tr>
 				<tr>
-					<td><input type="text" class="peakTorque" value="400 N m" /></td>
-					<td><input type="text" class="continuousTorque" value="250 N m" /></td>
-					<td><input type="text" class="peakPower" value="170 kW" /></td>
+					<td><input type="text" class="name" value="Yasa 750" /></td>
+					<td><input type="text" class="peakTorque" value="800 N m" /></td>
+					<td><input type="text" class="continuousTorque" value="400 N m" /></td>
+					<td><input type="text" class="peakPower" value="200 kW" /></td>
 					<td><input type="text" class="continuousPower" value="75 kW" /></td>
-					<td><input type="text" class="MaxShaftSpeed" value="7500 rpm" /></td>
-					<td><input type="text" class="Gearing" value="4.2" /></td>
+					<td><input type="text" class="maxShaftSpeed" value="4000 rpm" /></td>
 				</tr>
 			</tbody>
 		</table>
@@ -91,16 +96,41 @@
 			<tr>
 				<th>CdA</th>
 				<th>Weight</th>
-				<th>Drivetrain Eff</th>
-				<th>Electrical Eff</th>
 			</tr>
 			<tr>
 				<td><input type="text" id="CdA" value="0.735" /></td>
 				<td><input type="text" id="Weight" value="1600 kg" /></td>
-				<td><input type="text" id="DrivetrainEff" value="0.95" /></td>
-				<td><input type="text" id="ElectricalEff" value="0.86" /></td>
 			</tr>
 		</table>
+		<table>
+			<tr>
+				<th>Name</th>				
+				<th>Weight Dist.</th>
+				<th>Motor</th>
+				<th>Gear Ratio</th>
+				<th>Efficiency</th>
+			</tr>
+			<h2>Wheelsets</h2>
+			<p>These represent each connection between the vehicle and the ground. </p>
+			<tbody id="drives">
+				<tr>
+					<td><input type="text" class="name" value="Front Axle" /></td>
+					<td><input type="text" class="weightDist" value="0.52" /></td>
+					<td><select class="motorList"></select></td>
+					<td><input type="text" class="gearing" value="5.0"/></td>
+					<td><input type="text" class="efficiency" value="0.95" /></td>
+				</tr>
+				<tr>
+					<td><input type="text" class="name" value="Rear Axle" /></td>
+					<td><input type="text" class="weightDist" value="0.48" /></td>
+					<td><select class="motorList"></select></td>
+					<td><input type="text" class="gearing" value="5.0" /></td>
+					<td><input type="text" class="efficiency" value="0.95" /></td>
+				</tr>
+			</tbody>
+		</table>
+		<button id="addDriveRow">Add Row</button>
+		<button id="removeDriveRow">Remove Row</button>
 	</div>
 
 	<h1>Tires</h1>
@@ -114,7 +144,7 @@
 			<tr>
 				<td><input type="text" id="Friction" value="0.85" /></td>
 				<td><input type="text" id="RollingResistance" value="0.010" /></td>
-				<td><input type="text" id="Radius" value="0.33 m" /></td>
+				<td><input type="text" id="Radius" value="0.32 m" /></td>
 			</tr>
 		</table>
 	</div>
@@ -127,11 +157,13 @@
 				<th>Nominal Voltage</th>
 				<th>Internal Resistance</th>
 				<th>Capacity</th>
+				<th>C Rate</th>
 			</tr>
 			<tr>
 				<td><input type="text" id="nomVolt" value="3.2 V" /></td>
-				<td><input type="text" id="intResistance" value="0.65 mOhm" /></td>
+				<td><input type="text" id="intResistance" value="0.15 mOhm" /></td>
 				<td><input type="text" id="capacity" value="75 A h" /></td>
+				<td><input type="text" id="crate" value="10" /></td>
 			</tr>
 		</table>
 		<h3>Pack</h3>
@@ -139,10 +171,12 @@
 			<tr>
 				<th>Series</th>
 				<th>Parallel</th>
+				<th>Depth of Drain</th>
 			</tr>
 			<tr>
 				<td><input type="text" id="seriesCell" value="185" /></td>
 				<td><input type="text" id="parallelCell" value="1" /></td>
+				<td><input type="text" id="drainDepth" value="0.8" /></td>
 			</tr>
 		</table>
 	</div>
@@ -156,7 +190,7 @@
 			</tr>
 			<tr>
 				<td><input type="text" id="Accessory" value="1.2 kW" /></td>
-				<td><input type="text" id="ExternalTemp" value="25 C" /></td>
+				<td><input type="text" id="ExternalTemp" value="25 tempC" /></td>
 			</tr>
 		</table>
 	</div>

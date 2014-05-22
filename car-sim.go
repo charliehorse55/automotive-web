@@ -8,10 +8,18 @@ import (
 	"encoding/json"
 	"os"
 	"fmt"
+	"time"
+	"math"
 )
 
 
 const gravity = 9.81
+
+type LimitReason struct {
+	Reason string
+	Start time.Duration
+	Index int
+}
 
 type simulationResult struct {
     Accel100 string
@@ -20,82 +28,87 @@ type simulationResult struct {
 	TopSpeedAccelTime string
 	TopSpeedEff string
     PeakG string
-	Limits []automotiveSim.LimitingReason
+	Limits []LimitReason
+	AccelProfile []float64
+	AccelProfileTimes []float64
 	
 	Economy map[string]string
         
+	Efficiency map[string][]float64
+	Speeds []float64
     // Wh/km vs speed
-    Efficiency *automotiveSim.PowerDraw
-	
-	
+    // Efficiency *automotiveSim.PowerUse
 }
 
 var DriveSchedules map[string]automotiveSim.Schedule
 
-func removeSource(name string, p *automotiveSim.PowerDraw) {
-	//find the index to remove
-	index := -1
-	for i,source := range p.Sources {
-		if name == source {
-			index = i
-			break
-		}
-	}
-	if index == -1 {
-		return
+func runSim(data []byte) (*simulationResult, error) {	
+    vehicle, err  := automotiveSim.Parse(data)
+	if err != nil {
+		return nil, err
 	}
 	
-	//remove that source from the name list
-	p.Sources = append(p.Sources[:index], p.Sources[index+1:]...) 
-	
-	for i := range p.Magnitude {
-		for j := index; j < len(p.Sources); j++ {
-			p.Magnitude[i][j] = p.Magnitude[i][j+1]
-		}
-	}
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-    body, err := ioutil.ReadAll(r.Body)
-    if err != nil {
-        log.Fatal(err)
-    }
-    
-    vehicle, err  := automotiveSim.Parse(body)
-	if err != nil { 
-		return
-	}
-        
     //run an acceleration simulation
 	accel, err := vehicle.RunAccelerationProfile() 
-	if err != nil { return }
+	if err != nil { 
+		return nil, err
+	}
     
     var response simulationResult
-    response.TopSpeed = fmt.Sprintf("%3.0f kph", accel.TopSpeed*3.6)
+    response.TopSpeed = fmt.Sprintf("%3.0f kph", math.Floor(accel.TopSpeed*3.6))
 	response.Accel100 = fmt.Sprintf("%5.2fs", accel.Accel100)
-	response.QuarterMile = fmt.Sprintf("%5.2fs", accel.QuarterMile)
+	response.QuarterMile = fmt.Sprintf("Quarter Mile: %5.2fs", accel.QuarterMile)
 	response.TopSpeedAccelTime = fmt.Sprintf("%5.2fs", accel.AccelTop)
-    response.PeakG = fmt.Sprintf("%4.2fg", accel.PeakAccel/gravity)
-	response.Limits = accel.Limits
+    response.PeakG = fmt.Sprintf("%4.2fg", accel.PeakAccel/gravity)	
         
+	//create the accel profile between t=0 and t=QuarterMile
+	ap := make([]float64, 200)
+	times := make([]float64, len(ap))
+	for i := range ap {
+		times[i] = (accel.QuarterMile/float64(len(ap)))*float64(i)
+		index := int(times[i]*100)
+		ap[i] = accel.Profile[index]*3.6
+	}
+	response.AccelProfile = ap
+	response.AccelProfileTimes = times
+		
+	response.Limits = make([]LimitReason, len(accel.Limits))
+	var totalTime time.Duration 
+	for i := range response.Limits {
+		response.Limits[i].Reason = accel.Limits[i].Reason
+		response.Limits[i].Start = totalTime
+		index := int((totalTime.Seconds()/accel.QuarterMile)*float64(len(ap)))
+		if index > (len(ap) - 1) {
+			index = -1
+		}
+		response.Limits[i].Index = index
+		totalTime += accel.Limits[i].Duration
+	}
+	
+	
+	done := make(chan int, len(DriveSchedules))
 	response.Economy = make(map[string]string)
 	for name,schedule := range DriveSchedules {
-		result, err := schedule.Run(vehicle)
-		if err != nil {
-			response.Economy[name] = fmt.Sprintf("Failed")
-		} else {
-			energy := 0.0
-			for _,p := range result.Power {
-				energy += p * schedule.Interval
+		go func(name string, schedule automotiveSim.Schedule) {
+			result, err := schedule.Run(vehicle)
+			if err != nil {
+				response.Economy[name] = fmt.Sprintf("Failed")
+			} else {
+				response.Economy[name] = fmt.Sprintf("%4.1f Wh/km", (result.Energy/3.6)/result.Distance)
 			}
-			response.Economy[name] = fmt.Sprintf("%4.1f Wh/km", energy/result.Distance)
-		}
+			done<-1
+		}(name, schedule)
+	}
+	for i := 0; i < len(DriveSchedules); i++ {
+		<-done
 	}
 	
     highSpeed := 150
-    if int(accel.TopSpeed*3.6) < highSpeed {
-        highSpeed = int(accel.TopSpeed*3.6)
+	topSpeedKph := int(accel.TopSpeed*3.6)
+    if topSpeedKph < highSpeed {
+        highSpeed = topSpeedKph
     }
+	
 	lowSpeed := highSpeed/5
 	speedLen := (highSpeed - lowSpeed) + 1
 	speeds := make([]float64, speedLen)
@@ -103,24 +116,39 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		speeds[i] = float64(i + lowSpeed)/3.6 //convert kph to m/s for simulator
 	}
 
-	response.Efficiency, err = vehicle.PowerAtSpeeds(speeds)
+	response.Efficiency, err = vehicle.EfficiencyAtSpeeds(speeds)
 	if err != nil {
-		fmt.Printf("Failed to calculate PowerAtSpeeds: %v\n", err)
-		return
+		return nil, err
 	}
-	
-	removeSource("Acceleration", response.Efficiency)
-	
-	//convert from power values to Wh/km
-	for i := range response.Efficiency.Magnitude {
-		for j := 0; j < len(response.Efficiency.Sources); j++ {
-			response.Efficiency.Magnitude[i][j] /= speeds[i]
-		}
-	}
-		
-    data, err := json.Marshal(response)
+	response.Speeds = speeds
+	return &response, nil
+} 
+
+type errorResult struct {
+	Error string
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+    body, err := ioutil.ReadAll(r.Body)
     if err != nil {
-        log.Printf("Failed to marshal data: %v\n", response)
+        log.Printf("Failed to read request: %v\n", err)
+		return
+    }
+	
+	start := time.Now()
+	
+	var toSend interface{}
+	toSend, err = runSim(body)
+	if err != nil {
+		toSend = &errorResult{Error:err.Error()}
+	} 
+	
+	fmt.Printf("Took %8.3fs to handle request\n", time.Since(start).Seconds())
+    // log.Printf("Handling request:\n%s\n\n", string(body))
+			
+    data, err := json.Marshal(toSend)
+    if err != nil {
+        log.Printf("Failed to marshal data: %v\n", toSend)
         return
     }
     
@@ -153,7 +181,10 @@ func readSchedules(path string) error {
 }
 
 func main() {
-	readSchedules("schedules/")
+	err := readSchedules("schedules/")
+	if err != nil {
+		log.Fatal(err)
+	}
     http.HandleFunc("/simulate", handler)
     http.Handle("/", http.FileServer(http.Dir(".")))
     log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
