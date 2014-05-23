@@ -73,16 +73,14 @@ func runSim(data []byte) (*simulationResult, error) {
 	response.AccelProfileTimes = times
 		
 	response.Limits = make([]LimitReason, len(accel.Limits))
-	var totalTime time.Duration 
 	for i := range response.Limits {
 		response.Limits[i].Reason = accel.Limits[i].Reason
-		response.Limits[i].Start = totalTime
-		index := int((totalTime.Seconds()/accel.QuarterMile)*float64(len(ap)))
+		response.Limits[i].Start = accel.Limits[i].Start
+		index := int((accel.Limits[i].Start.Seconds()/accel.QuarterMile)*float64(len(ap)))
 		if index > (len(ap) - 1) {
 			index = -1
 		}
 		response.Limits[i].Index = index
-		totalTime += accel.Limits[i].Duration
 	}
 	
 	
@@ -94,7 +92,7 @@ func runSim(data []byte) (*simulationResult, error) {
 			if err != nil {
 				response.Economy[name] = fmt.Sprintf("Failed")
 			} else {
-				response.Economy[name] = fmt.Sprintf("%4.1f Wh/km", (result.Energy/3.6)/result.Distance)
+				response.Economy[name] = fmt.Sprintf("%4.2f L/100km", ((result.Energy/3.6)/89)/result.Distance)
 			}
 			done<-1
 		}(name, schedule)
