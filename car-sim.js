@@ -93,6 +93,11 @@ function draw_eff() {
 			duration: 1000,
 			easing: 'out'
 	    	},
+			chartArea: {
+				width: '75%', 
+				height: '80%',
+				left:70,
+			},
 	    	vAxis:{
 			viewWindow:{
 				max:effGraphMax
@@ -301,6 +306,11 @@ function submitRequest() {
 	})
 	
 	vehicle.Body = body;
+	
+	vehicle.Ambient = {
+		Temperature:checkInput($("#Temperature"), "tempK"),
+		Pressure:checkInput($("#Pressure"), "Pa"),
+	}
 	
 	//misc
 	vehicle.Accessory = checkInput($("#Accessory"), "W");

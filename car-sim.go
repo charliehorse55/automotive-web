@@ -13,7 +13,10 @@ import (
 )
 
 
-const gravity = 9.81
+const (
+	gravity = 9.81
+	gasolineWh = 8902.6
+)
 
 type LimitReason struct {
 	Reason string
@@ -42,7 +45,7 @@ type simulationResult struct {
 
 var DriveSchedules map[string]automotiveSim.Schedule
 
-func runSim(data []byte) (*simulationResult, error) {	
+func runSim(data []byte) (*simulationResult, error) {
     vehicle, err  := automotiveSim.Parse(data)
 	if err != nil {
 		return nil, err
@@ -86,16 +89,22 @@ func runSim(data []byte) (*simulationResult, error) {
 	
 	done := make(chan int, len(DriveSchedules))
 	response.Economy = make(map[string]string)
-	for name,schedule := range DriveSchedules {
-		go func(name string, schedule automotiveSim.Schedule) {
-			result, err := schedule.Run(vehicle)
+	for _,schedule := range DriveSchedules {
+		go func(schedule automotiveSim.Schedule) {
+			//ignore the error, it's impossible because we already ran other simulations
+			sim, _ := automotiveSim.InitSimulation(vehicle)
+			
+			//error analysis shows this to be a very safe value
+			sim.Interval = time.Millisecond * 100
+			
+			result, err := sim.Run(&schedule)
 			if err != nil {
-				response.Economy[name] = fmt.Sprintf("Failed")
+				response.Economy[schedule.Name] = fmt.Sprintf("Failed")
 			} else {
-				response.Economy[name] = fmt.Sprintf("%4.2f L/100km", ((result.Energy/3.6)/89)/result.Distance)
+				response.Economy[schedule.Name] = fmt.Sprintf("%4.2f L/100km", (((result.Energy*100)/3.6)/gasolineWh)/result.Distance)
 			}
 			done<-1
-		}(name, schedule)
+		}(schedule)
 	}
 	for i := 0; i < len(DriveSchedules); i++ {
 		<-done
