@@ -190,8 +190,16 @@ function draw_perf() {
 }
 
 function draw_epa() {
-	
-	$("#tabs-2").html(JSON.stringify(currData.Economy))
+	var table = "<table>"
+	for (var test in currData.Economy) {
+		var cycle = currData.Economy[test]
+		table += "<tr><th>" + test + "</th><td><b>" + cycle['Combined'] + "</b></td></tr>"
+		for (var resource in cycle['Resources']) {
+			table += "<tr><td>" + resource + "</td><td>" + cycle['Resources'][resource] + "</td></tr>"
+		}
+	}
+	$("#cycleResults").html(table)
+	$("#rangeResult").html("Range: " + currData.Range)	
 }
 
 function displayResult(data, textStatus, jqXHR) {
@@ -257,7 +265,7 @@ function submitRequest() {
 		motor.Continuous.Torque = checkInput($this.find(".continuousTorque"), "N m");
 		motor.Continuous.Power = checkInput($this.find(".continuousPower"), "W");
 		motor.MaxShaftSpeed = checkInput($this.find(".maxShaftSpeed"), "rad/s");
-		motor.Efficiency = 0.95;
+		motor.Efficiency = 0.88;
 		motors[motor.Name] = motor;
 	} );
 	

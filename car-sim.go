@@ -24,6 +24,11 @@ type LimitReason struct {
 	Index int
 }
 
+type Economy struct {
+	Resources map[string]string
+	Combined string
+}
+
 type simulationResult struct {
     Accel100 string
     QuarterMile string
@@ -35,15 +40,14 @@ type simulationResult struct {
 	AccelProfile []float64
 	AccelProfileTimes []float64
 	
-	Economy map[string]string
+	Economy map[string]Economy
+	Range string
         
 	Efficiency map[string][]float64
 	Speeds []float64
     // Wh/km vs speed
     // Efficiency *automotiveSim.PowerUse
 }
-
-var DriveSchedules map[string]automotiveSim.Schedule
 
 func runSim(data []byte) (*simulationResult, error) {
     vehicle, err  := automotiveSim.Parse(data)
@@ -87,28 +91,34 @@ func runSim(data []byte) (*simulationResult, error) {
 	}
 	
 	
-	done := make(chan int, len(DriveSchedules))
-	response.Economy = make(map[string]string)
+	response.Economy = make(map[string]Economy)
+	totalDistance := 0.0
+	totalSOCLoss := 0.0
 	for _,schedule := range DriveSchedules {
-		go func(schedule automotiveSim.Schedule) {
 			//ignore the error, it's impossible because we already ran other simulations
 			sim, _ := automotiveSim.InitSimulation(vehicle)
 			
-			//error analysis shows this to be a very safe value
+			//error analysis shows this to be a conservative value
 			sim.Interval = time.Millisecond * 100
-			
-			result, err := sim.Run(&schedule)
+			var econ Economy
+			err := sim.Run(&schedule)
 			if err != nil {
-				response.Economy[schedule.Name] = fmt.Sprintf("Failed")
+				econ.Combined = "Failed"
 			} else {
-				response.Economy[schedule.Name] = fmt.Sprintf("%4.2f L/100km", (((result.Energy*100)/3.6)/gasolineWh)/result.Distance)
+				econ.Resources = make(map[string]string)
+				joules := 0.0
+				for resource, amount := range sim.Resources {
+					econ.Resources[resource] = formatResource(resource, amount)
+					joules += automotiveSim.JoulesPerUnit(resource) * amount
+				}
+				econ.Combined = fmt.Sprintf("%4.2f L/100km", (((joules*100)/3.6)/gasolineWh)/sim.Distance)
+				totalDistance += sim.Distance
+				totalSOCLoss += 1 - sim.Battery.StateOfCharge()
 			}
-			done<-1
-		}(schedule)
+			response.Economy[schedule.Name] = econ
 	}
-	for i := 0; i < len(DriveSchedules); i++ {
-		<-done
-	}
+	
+	response.Range = fmt.Sprintf("%.0f km", (totalDistance/totalSOCLoss)/1000)
 	
     highSpeed := 150
 	topSpeedKph := int(accel.TopSpeed*3.6)
@@ -161,6 +171,18 @@ func handler(w http.ResponseWriter, r *http.Request) {
     
     w.Write(data)
 }
+
+func formatResource(name string, amount float64) string {
+	if name == "Electricity" {
+		return fmt.Sprintf("%.1f kWh", amount/(60*60*1000))
+	}
+	if name == "Gasoline" {
+		return fmt.Sprintf("%.2f L", amount)
+	}
+	return "Unit not found"
+}
+
+var DriveSchedules map[string]automotiveSim.Schedule
 
 func readSchedules(path string) error {
 	DriveSchedules = make(map[string]automotiveSim.Schedule)
